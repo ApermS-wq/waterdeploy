@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кошелек</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script type="module" src="../src/tonconnect.js"></script>
+    <style>
+        /* Общее оформление для страницы */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Основной контейнер для данных */
+        .container {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto; /* Позволяет прокручивать только этот контейнер */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .username {
+            font-size: 24px;
+            color: #fff;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-evenly;
+            background-color: #111;
+            padding: 25px 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            z-index: 10;
+        }
+
+        .navbar a {
+            color: #aaa;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        .navbar a.active {
+            color: #47c747;
+        }
+
+        /* Кнопка подключения кошелька */
+        .play-button {
+            background-color: #47c747;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 18px;
+            border-radius: 25px;
+            cursor: pointer;
+        }
+
+        .play-button:disabled {
+            background-color: #888;
+        }
+
+        /* Общее оформление для текста */
+        p {
+            font-size: 18px;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+
+<div class="header">
+    <img src="" alt="Avatar" id="avatar">
+</div>
+
+<!-- Контейнер для данных страницы -->
+<div class="container">
+    <div class="username" id="username">Загрузка...</div>
+    <p>Подключите свой кошелёк:</p>
+    <!-- Кнопка для подключения кошелька -->
+    <div id="connect"></div>
+    <script>
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://gist.githubusercontent.com/ApermS-wq/b4e657b3a33ba65536860b98a06a4e81/raw/3deb4987085622022d158e165dcbfdbe94b5dc7e/gistfile1.txt',
+            buttonRootId: 'connect'
+        });
+
+        // Слушаем события подключения кошелька
+        tonConnectUI.onStatusChange((wallet) => {
+            if (wallet?.address) {
+                saveWalletAddress(wallet.address);
+            }
+        });
+
+        // Функция для отправки адреса кошелька на сервер
+        async function saveWalletAddress(walletAddress) {
+            try {
+                // Проверяем, доступен ли userData
+                const userData = window.Telegram.WebApp.initDataUnsafe?.user;
+
+                if (!userData?.id) {
+                    console.error('Ошибка: Не удалось получить User ID из Telegram.');
+                    alert('Ошибка: не удалось определить пользователя.');
+                    return;
+                }
+
+                // Отправляем адрес кошелька на сервер
+                const response = await fetch('/save-wallet', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_id: userData.id, wallet_address: walletAddress })
+                });
+
+                if (response.ok) {
+                    alert('Адрес кошелька успешно сохранён в базе данных!');
+                } else {
+                    const errorText = await response.text();
+                    console.error('Ошибка сохранения адреса кошелька:', errorText);
+                    alert('Ошибка сохранения адреса кошелька: ' + errorText);
+                }
+            } catch (error) {
+                console.error('Ошибка при сохранении адреса кошелька:', error);
+                alert('Произошла ошибка при сохранении кошелька. Попробуйте снова.');
+            }
+        }
+    </script>
+</div>
+
+<!-- Панель навигации -->
+<div class="navbar">
+    <a href="index.html">Главная</a>
+    <a href="income.html">Доход</a>
+    <a href="friends.html">Друзья</a>
+    <a href="wallet.html" class="active">Кошелек</a>
+</div>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    const userData = tg.initDataUnsafe?.user;
+    if (userData) {
+        document.getElementById('username').innerText = userData.username || userData.first_name;
+        document.getElementById('avatar').src = userData.photo_url || 'default-avatar.png';
+    }
+
+    async function fetchUserData() {
+        try {
+            const res = await fetch(`/get-user-data?user_id=${userData.id}`);
+            const data = await res.json();
+            document.getElementById('user-balance').innerText = data.balance;
+            document.getElementById('user-buckets').innerText = data.buckets;
+        } catch (error) {
+            console.error('Ошибка при загрузке данных пользователя:', error);
+        }
+    }
+
+    fetchUserData();
+
+    // Инициализация TonConnect
+    const tonConnect = new TonConnect();
+
+    // Обработчик для кнопки "Connect Wallet"
+    document.getElementById('connect-wallet-button').addEventListener('click', async () => {
+        console.log("Попытка подключения к кошельку...");
+
+        try {
+            // Ожидаем подключения кошелька
+            const connection = await tonConnect.connect();
+
+            // Выводим информацию о подключении в консоль
+            console.log('Подключенный кошелек:', connection);
+
+            // Здесь вы можете обработать информацию о кошельке или отправить на сервер
+            alert('Кошелек подключен успешно!');
+
+        } catch (error) {
+            console.error('Ошибка при подключении кошелька:', error);
+            alert('Не удалось подключить кошелек');
+        }
+    });
+</script>
+
+</body>
+</html>

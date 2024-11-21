@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Общее оформление для страницы */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Основной контейнер для данных */
+        .container {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto; /* Позволяет прокручивать только этот контейнер */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .username {
+            font-size: 24px;
+            color: #fff;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-evenly;
+            background-color: #111;
+            padding: 25px 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            z-index: 10;
+        }
+
+        .navbar a {
+            color: #aaa;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        .navbar a.active {
+            color: #47c747;
+        }
+        p {
+            font-size: 18px;
+            color: #fff;
+        }
+
+    </style>
+</head>
+<body>
+<div class="header">
+    <img src="" alt="Avatar" id="avatar">
+</div>
+
+<div class="container">
+    <div class="username" id="username">Загрузка...</div>
+    <div class="balance">
+        <div style="display: inline-flex; align-items: center;">
+            <img src="https://cdn-icons-png.flaticon.com/256/657/657201.png" alt="Balance Icon" style="width: 24px; height: 24px; margin-left: 5px;">
+            <span id="user-balance" style="margin-left: 5px;">Загрузка...</span>
+        </div>
+        <div style="display: inline-flex; align-items: center;">
+            <img src="https://cdn-icons-png.flaticon.com/256/4163/4163672.png" alt="Bucket Icon" style="width: 24px; height: 24px; margin-left: 5px;">
+            <span id="user-buckets" style="margin-left: 5px;">Загрузка...</span>
+        </div>
+    </div>
+    <div class="game-card">
+        <img src="https://cdn-icons-png.flaticon.com/256/8080/8080764.png" alt="Game Icon">
+        <p>Drop game</p>
+        <button class="play-button" id="play-button" onclick="playGame()">Играть</button>
+    </div>
+</div>
+
+<div class="navbar">
+    <a href="index.html" class="active">Главная</a>
+    <a href="income.html">Доход</a>
+    <a href="friends.html">Друзья</a>
+    <a href="wallet.html">Кошелек</a>
+</div>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    const userData = tg.initDataUnsafe?.user;
+    if (userData) {
+        document.getElementById('username').innerText = userData.username || userData.first_name;
+        document.getElementById('avatar').src = userData.photo_url || 'default-avatar.png';
+    }
+
+    async function fetchUserData() {
+        try {
+            const res = await fetch(`/get-user-data?user_id=${userData.id}`);
+            const data = await res.json();
+            document.getElementById('user-balance').innerText = data.balance;
+            document.getElementById('user-buckets').innerText = data.buckets;
+
+            const playButton = document.getElementById('play-button');
+            if (data.buckets <= 0) {
+                playButton.innerText = "У вас кончились вёдра";
+                playButton.disabled = true;
+            } else {
+                playButton.innerText = "Играть";
+                playButton.disabled = false;
+            }
+        } catch (error) {
+            console.error('Ошибка при загрузке данных пользователя:', error);
+        }
+    }
+
+    async function playGame() {
+        try {
+            const res = await fetch(`/play-game?user_id=${userData.id}`, { method: 'POST' });
+            const data = await res.json();
+            document.getElementById('user-balance').innerText = data.balance;
+            document.getElementById('user-buckets').innerText = data.buckets;
+
+            const playButton = document.getElementById('play-button');
+            if (data.buckets <= 0) {
+                playButton.innerText = "У вас кончились вёдра";
+                playButton.disabled = true;
+            } else {
+                playButton.innerText = "Играть";
+                playButton.disabled = false;
+            }
+
+            if (data.earnedAmount) alert(`Вы заработали: ${data.earnedAmount}`);
+        } catch (error) {
+            console.error('Ошибка при игре:', error);
+        }
+    }
+
+    fetchUserData();
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Друзья</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Общее оформление для страницы */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Основной контейнер для данных */
+        .container {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto; /* Позволяет прокручивать только этот контейнер */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .username {
+            font-size: 24px;
+            color: #fff;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-evenly;
+            background-color: #111;
+            padding: 25px 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            z-index: 10;
+        }
+
+        .navbar a {
+            color: #aaa;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        .navbar a.active {
+            color: #47c747;
+        }
+        p {
+            font-size: 18px;
+            color: #fff;
+        }
+
+        </style>
+</head>
+<body>
+<div class="header">
+    <img src="" alt="Avatar" id="avatar">
+</div>
+
+<div class="container">
+    <div class="username" id="username">Загрузка...</div>
+    <p>Список приглашённых вами друзей:</p>
+</div>
+
+<div class="navbar">
+    <a href="index.html">Главная</a>
+    <a href="income.html">Доход</a>
+    <a href="friends.html" class="active">Друзья</a>
+    <a href="wallet.html">Кошелек</a>
+</div>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    const userData = tg.initDataUnsafe?.user;
+    if (userData) {
+        document.getElementById('username').innerText = userData.username || userData.first_name;
+        document.getElementById('avatar').src = userData.photo_url || 'default-avatar.png';
+    }
+
+    async function fetchUserData() {
+        try {
+            const res = await fetch(`/get-user-data?user_id=${userData.id}`);
+            const data = await res.json();
+            document.getElementById('user-balance').innerText = data.balance;
+            document.getElementById('user-buckets').innerText = data.buckets;
+        } catch (error) {
+            console.error('Ошибка при загрузке данных пользователя:', error);
+        }
+    }
+
+    fetchUserData();
+</script>
+</body>
+</html>

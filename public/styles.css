@@ -1,0 +1,79 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #000;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+}
+.container {
+    margin-top: 15px;
+}
+.header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 20px;
+    background: #333;
+    border-bottom: 1px solid #555;
+}
+.header img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+}
+.username {
+    font-size: 24px;
+    margin: 10px 0;
+    color: #ccc;
+}
+.balance {
+    font-size: 36px;
+    font-weight: bold;
+    color: #47c747;
+}
+.buckets {
+    font-size: 18px;
+    color: #47c747;
+    margin: 5px 0;
+}
+.game-card {
+    margin: 20px auto;
+    padding: 20px;
+    background: #222;
+    border-radius: 10px;
+    max-width: 300px;
+}
+.game-card img {
+    width: 60px;
+    margin-bottom: 10px;
+}
+.play-button {
+    background-color: #47c747;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 18px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+.play-button:disabled {
+    background-color: #888;
+}
+.navbar {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+    background: #111;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+.navbar a {
+    color: #aaa;
+    font-size: 12px;
+    text-decoration: none;
+}
+.navbar a.active {
+    color: #47c747;
+}
